@@ -124,7 +124,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     );
                   },
                   child: Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin:  EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: ListTile(
                       leading: CircleAvatar(
                         child: Text('${index + 1}'),
@@ -132,14 +132,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       title: Text(session.id ?? 'Session'), // if you added title
                //       subtitle: Text(
                //           'Duration: ${session.totalMilliseconds}:${(session.totalMilliseconds % 60000) ~/ 1000}'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
+                      trailing:  Icon(Icons.arrow_forward_ios),
                       onTap: () {
-                 //       Navigator.push(
-                 //         context,
-                 //         MaterialPageRoute(
-                 //           builder: (context) => SessionDetailScreen(session: session),
-                 //         ),
-                 //       );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SessionDetailScreen(sessionModel: session,),
+                          ),
+                        );
                       },
                     ),
                   ),

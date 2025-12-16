@@ -90,9 +90,9 @@ class LapProvider extends ChangeNotifier{
   Future<void> saveSession({required String name}) async {
     final id = DateTime.now().toString();
     final session = SessionModel(
-      id: id,
+      id: name,
       date: DateTime.now(),
-      totalMilliseconds: formattedTime,
+      totalMilliseconds: total_Time,
       laps: laps,
     //  title: name,
     );
