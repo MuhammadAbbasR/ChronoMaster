@@ -6,9 +6,8 @@ import 'package:chronomaster_pro/widgets/charts.dart';
 class SessionDetailScreen extends StatelessWidget {
   final SessionModel sessionModel;
 
-  SessionDetailScreen({super.key, required this.sessionModel});
+  const SessionDetailScreen({super.key, required this.sessionModel});
 
-  // Convert "mm:ss.mmm" → milliseconds
   int lapStringToMs(String lap) {
     final parts = lap.split(':');
     final minutes = int.parse(parts[0]);
@@ -46,7 +45,7 @@ class SessionDetailScreen extends StatelessWidget {
     final lapMsList =
     sessionModel.laps.map((e) => lapStringToMs(e)).toList();
 
-    // cumulative time
+
     final List<int> cumulativeMsList = [];
     int sum = 0;
     for (final ms in lapMsList) {
@@ -54,7 +53,7 @@ class SessionDetailScreen extends StatelessWidget {
       cumulativeMsList.add(sum);
     }
 
-    // delta times
+
     final List<double> deltaMsList = [];
     for (int i = 0; i < lapMsList.length; i++) {
       if (i == 0) {
@@ -168,7 +167,6 @@ class SessionDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-
             LapTimeChart(session: sessionModel),
 
             const Divider(),
@@ -219,11 +217,13 @@ class SessionDetailScreen extends StatelessWidget {
               },
             ),
 
-            SizedBox(height: 50,),
+            const SizedBox(height: 50,),
 
           ],
         ),
       ),
     );
+
   }
+
 }

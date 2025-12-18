@@ -1,5 +1,6 @@
 import 'package:chronomaster_pro/services/hive_services.dart';
 import 'package:chronomaster_pro/view_model/lap_provider.dart';
+import 'package:chronomaster_pro/views/interval_main_screen.dart';
 import 'package:chronomaster_pro/views/lap_timer_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +28,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
 
-      home: LapTimerScreen(),
+      home: IntervalScreen(),
     );
   }
 }
