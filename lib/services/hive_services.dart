@@ -14,6 +14,8 @@ class HiveService {
       Hive.registerAdapter(SessionModelAdapter());
     }
 
+
+
     // Open box if not already open
     if (!Hive.isBoxOpen(sessionBoxName)) {
       _box = await Hive.openBox<SessionModel>(sessionBoxName);
