@@ -1,40 +1,58 @@
+import 'package:chronomaster_pro/config/dummy_data/beginner_run.dart';
+import 'package:chronomaster_pro/config/dummy_data/sprint_run.dart';
+import 'package:chronomaster_pro/config/dummy_data/stretch_run.dart';
 import 'package:chronomaster_pro/model/session_model.dart';
+import 'package:chronomaster_pro/model/workout_step_model.dart';
+import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
+  // Box names
   static const String sessionBoxName = 'sessions';
-  static Box<SessionModel>? _box;
+  static const String templateBoxName = 'workout_templates';
 
-  /// Call this ONCE at app startup
+
+  static Box<SessionModel>? _sessionBox;
+  static Box<WorkoutTemplate>? _templateBox;
+
   static Future<void> init() async {
     await Hive.initFlutter();
 
-    // Register adapters if not registered
+
     if (!Hive.isAdapterRegistered(SessionModelAdapter().typeId)) {
       Hive.registerAdapter(SessionModelAdapter());
     }
 
-
-
-    // Open box if not already open
-    if (!Hive.isBoxOpen(sessionBoxName)) {
-      _box = await Hive.openBox<SessionModel>(sessionBoxName);
-    } else {
-      _box = Hive.box<SessionModel>(sessionBoxName);
+    if (!Hive.isAdapterRegistered(WorkoutStepAdapter().typeId)) {
+      Hive.registerAdapter(WorkoutStepAdapter());
     }
+
+    if (!Hive.isAdapterRegistered(WorkoutTemplateAdapter().typeId)) {
+      Hive.registerAdapter(WorkoutTemplateAdapter());
+    }
+
+    _sessionBox = await Hive.openBox<SessionModel>(sessionBoxName);
+    _templateBox = await Hive.openBox<WorkoutTemplate>(templateBoxName);
   }
 
-  /// Get session box anywhere in app
   static Box<SessionModel> get sessionBox {
-    if (_box == null || !_box!.isOpen) {
+    if (_sessionBox == null || !_sessionBox!.isOpen) {
       throw Exception(
-          "HiveService not initialized. Call HiveService.init() first.");
+        "Session box not initialized. Call HiveService.init() first.",
+      );
     }
-    return _box!;
+    return _sessionBox!;
   }
 
-  /// Add a session
-  /// If session.id is empty, auto-generate using timestamp
+  static Box<WorkoutTemplate> get templateBox {
+    if (_templateBox == null || !_templateBox!.isOpen) {
+      throw Exception(
+        "Template box not initialized. Call HiveService.init() first.",
+      );
+    }
+    return _templateBox!;
+  }
+
   static Future<void> addSession(SessionModel session) async {
     final id = session.id.isNotEmpty
         ? session.id
@@ -42,18 +60,18 @@ class HiveService {
     await sessionBox.put(id, session);
   }
 
-  /// Get all sessions sorted by date descending
+
   static List<SessionModel> getAllSessions() {
     return sessionBox.values.toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  /// Get single session by id
+
   static SessionModel? getSession(String id) {
     return sessionBox.get(id);
   }
 
-  /// Update session
+
   static Future<void> updateSession(SessionModel session) async {
     if (session.id.isEmpty) {
       throw Exception("Session id cannot be empty for update");
@@ -61,13 +79,43 @@ class HiveService {
     await sessionBox.put(session.id, session);
   }
 
-  /// Delete session
+
   static Future<void> deleteSession(String id) async {
     await sessionBox.delete(id);
   }
 
-  /// Clear all sessions
+
   static Future<void> clearAllSessions() async {
     await sessionBox.clear();
   }
+
+  static List<WorkoutTemplate> getAllTemplates(){
+    final box = HiveService.templateBox;
+
+    if (box.isEmpty) {
+      box.addAll([
+        beginnerRunTemplate,
+        hiitSprintTemplate,
+        recoveryTemplate,
+      ]);
+    }
+    return  _templateBox!.values.toList();
+  }
+
+  static Future<void> addTemplates(WorkoutTemplate workoutTemplate)async{
+
+    if(workoutTemplate!=null){
+     await _templateBox!.add(workoutTemplate);
+    }
+  }
+
+  static Future<void> deleteTemplate(WorkoutTemplate workoutTemplate)async{
+    await _templateBox!.delete(workoutTemplate.id);
+  }
+
+  static Future<void> updateTemplate(int id, WorkoutTemplate workoutTemplate)async{
+    await _templateBox!.putAt(id, workoutTemplate);
+  }
+
+
 }

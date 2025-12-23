@@ -1,41 +1,27 @@
+import 'package:chronomaster_pro/model/workout_template_model.dart';
+import 'package:chronomaster_pro/view_model/time_interval_provider.dart';
 import 'package:chronomaster_pro/views/create_interval_template.dart';
+import 'package:chronomaster_pro/views/template_interval_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class IntervalScreen extends StatefulWidget {
-  const IntervalScreen({super.key});
+class IntervalMainScreen extends StatefulWidget {
+  const IntervalMainScreen({super.key});
 
   @override
-  State<IntervalScreen> createState() => _IntervalScreenState();
+  State<IntervalMainScreen> createState() => _IntervalMainScreenState();
 }
 
-class _IntervalScreenState extends State<IntervalScreen> {
+class _IntervalMainScreenState extends State<IntervalMainScreen> {
 
-  // 🔹 Dummy interval templates
-  final List<Map<String, dynamic>> templates = [
-    {
-      "name": "Sprint Training",
-      "steps": 6,
-      "time": "30 min",
-    },
-    {
-      "name": "HIIT Session",
-      "steps": 8,
-      "time": "20 min",
-    },
-    {
-      "name": "Warm Up",
-      "steps": 4,
-      "time": "10 min",
-    },
-    {
-      "name": "Endurance Run",
-      "steps": 10,
-      "time": "45 min",
-    },
-  ];
+
+
+
 
   @override
   Widget build(BuildContext context) {
+    final providerList=Provider.of<TimeIntervalProvider>(context);
+    providerList.fetchTemplate();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -81,13 +67,13 @@ class _IntervalScreenState extends State<IntervalScreen> {
 
             Expanded(
               child: ListView.builder(
-                itemCount: templates.length,
+                itemCount: providerList.templateList.length,
                 itemBuilder: (context, index) {
-                  final template = templates[index];
+                  final template = providerList.templateList[index];
                   return Dismissible(
                     direction: DismissDirection.startToEnd,
                     onDismissed:(_){
-                      templates.removeAt(index);
+                     // templates.removeAt(index);
                       setState(() {
 
                       });
@@ -99,13 +85,13 @@ class _IntervalScreenState extends State<IntervalScreen> {
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       //key: ValueKey<int>(templates[index]),
-                    key: Key(template["name"]),
+                    key: Key(template.id),
                       child: _intervalTemplateCard(
-                        name: template["name"],
-                        steps: template["steps"],
-                        time: template["time"],
+                        template: template,
+                        name: template.name,
+                        steps: template.steps.length,
+                        time: template.createdAt.toString(),
                       )
-
                   );
                  // return
                 },
@@ -119,6 +105,7 @@ class _IntervalScreenState extends State<IntervalScreen> {
 
 
   Widget _intervalTemplateCard({
+    required WorkoutTemplate template,
     required String name,
     required int steps,
     required String time,
@@ -153,7 +140,10 @@ class _IntervalScreenState extends State<IntervalScreen> {
                 _StatItem(label: "Time", value: time),
                 TextButton.icon(
                   onPressed: () {
-                    // TODO: Start interval timer with this template
+
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                         IntervalScreen(template:template)));
+
                   },
                   icon: const Icon(Icons.play_arrow),
                   label: const Text("Start"),

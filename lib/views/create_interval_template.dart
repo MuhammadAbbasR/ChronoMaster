@@ -27,7 +27,7 @@ class _CreateIntervalTemplateState extends State<CreateIntervalTemplate> {
   final List<String> warmUp = ["60", "300", "600", "900", "1200"];
   final List<String> sprintOption = ["15", "30", "60", "90", "120"];
   final List<String> jogOptions = ["120", "300", "420", "600", "900"];
-  final List<String> restOptions = ["5", "10", "15", "20"];
+  final List<String> restOptions = ["30","60","120", "300", "600"];
   final List<String> stretch = ["15", "30", "60", "120", "300"];
 
   List<String> getDurationOptions() {
