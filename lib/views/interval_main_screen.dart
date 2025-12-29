@@ -15,13 +15,22 @@ class IntervalMainScreen extends StatefulWidget {
 class _IntervalMainScreenState extends State<IntervalMainScreen> {
 
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
 
+    Future.microtask(() {
+      context.read<TimeIntervalProvider>().fetchTemplate();
+    });
+
+
+  }
 
 
   @override
   Widget build(BuildContext context) {
-    final providerList=Provider.of<TimeIntervalProvider>(context);
-    providerList.fetchTemplate();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -66,35 +75,45 @@ class _IntervalMainScreenState extends State<IntervalMainScreen> {
             const SizedBox(height: 20),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: providerList.templateList.length,
-                itemBuilder: (context, index) {
-                  final template = providerList.templateList[index];
-                  return Dismissible(
-                    direction: DismissDirection.startToEnd,
-                    onDismissed:(_){
-                     // templates.removeAt(index);
-                      setState(() {
+              child: Consumer<TimeIntervalProvider>( builder: (context,providerList,_){
 
-                      });
-                    },
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      //key: ValueKey<int>(templates[index]),
-                    key: Key(template.id),
-                      child: _intervalTemplateCard(
-                        template: template,
-                        name: template.name,
-                        steps: template.steps.length,
-                        time: template.createdAt.toString(),
-                      )
-                  );
-                 // return
-                },
+                return providerList.loading==true ? CircularProgressIndicator(color: Colors.black,): ListView.builder(
+                  itemCount: providerList.templateList.length,
+                  itemBuilder: (context, index) {
+                    final template = providerList.templateList[index];
+                    return Dismissible(
+                        key: Key(template.id),
+                        direction: DismissDirection.startToEnd,
+                        onDismissed:(_){
+                          // templates.removeAt(index);
+                      //    setState(() {//
+
+                      //    });
+                       //   providerList.deleteTemplate(template);
+                          context.read<TimeIntervalProvider>().deleteTemplate(template,index);
+
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        //key: ValueKey<int>(templates[index]),
+                        //key: Key(template.id),
+                        child: _intervalTemplateCard(
+                          template: template,
+                          name: template.name,
+                          steps: template.steps.length,
+                          time: template.createdAt.toString(),
+                        )
+                    );
+                    // return
+                  },
+                );
+
+              },
+
               ),
             ),
           ],

@@ -35,6 +35,5 @@ class MyApp extends StatelessWidget {
       home: IntervalMainScreen(),
     );
   }
+
 }
-
-

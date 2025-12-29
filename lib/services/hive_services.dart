@@ -4,6 +4,7 @@ import 'package:chronomaster_pro/config/dummy_data/stretch_run.dart';
 import 'package:chronomaster_pro/model/session_model.dart';
 import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
@@ -105,12 +106,20 @@ class HiveService {
   static Future<void> addTemplates(WorkoutTemplate workoutTemplate)async{
 
     if(workoutTemplate!=null){
-     await _templateBox!.add(workoutTemplate);
+     await _templateBox!.put(workoutTemplate.id,workoutTemplate);
     }
   }
 
   static Future<void> deleteTemplate(WorkoutTemplate workoutTemplate)async{
-    await _templateBox!.delete(workoutTemplate.id);
+
+    try{
+      debugPrint("Template is being deleted");
+      await _templateBox!.delete(workoutTemplate.id);
+    }
+    catch(e){
+      debugPrint(e.toString());
+    }
+
   }
 
   static Future<void> updateTemplate(int id, WorkoutTemplate workoutTemplate)async{

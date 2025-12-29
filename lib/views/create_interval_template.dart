@@ -1,4 +1,9 @@
+import 'package:chronomaster_pro/model/workout_step_model.dart';
+import 'package:chronomaster_pro/model/workout_template_model.dart';
+import 'package:chronomaster_pro/view_model/time_interval_provider.dart';
+import 'package:chronomaster_pro/widgets/save_template.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CreateIntervalTemplate extends StatefulWidget {
   const CreateIntervalTemplate({super.key});
@@ -14,7 +19,7 @@ class _CreateIntervalTemplateState extends State<CreateIntervalTemplate> {
   String? selectedTime;
 
   List<String> steps = [];
-
+  List<WorkoutStep> workStep=[];
   // Dropdown options
   final List<String> workOptions = [
     "Warm Up",
@@ -59,7 +64,17 @@ class _CreateIntervalTemplateState extends State<CreateIntervalTemplate> {
         foregroundColor: Colors.black,
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () async{
+          String? check=   await  showSaveWorkoutBottomSheet(context);
+          if(check!=null){
+            Provider.of<TimeIntervalProvider>(context,listen: false).addTemplate(WorkoutTemplate
+              (id: DateTime.now().toString(), name: check, steps: workStep, createdAt: DateTime.now()));
+          Navigator.pop(context);
+          }
+          //    Provider.of<TimeIntervalProvider>(context,listen: false).addTemplate(WorkoutTemplate
+          //      (id: id, name: name, steps: steps, createdAt: DateTime.now()));
+
+            },
             icon: const Icon(Icons.save),
           ),
         ],
@@ -128,7 +143,10 @@ class _CreateIntervalTemplateState extends State<CreateIntervalTemplate> {
                         ElevatedButton.icon(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
+
                               setState(() {
+                                workStep.add(WorkoutStep(id: "${workStep.length+1}", name: selectedWork!,
+                                    duration: int.parse(selectedTime!)));
                                 steps.add(
                                     "$selectedWork • $selectedTime sec");
                                 selectedWork = null;
@@ -172,7 +190,7 @@ class _CreateIntervalTemplateState extends State<CreateIntervalTemplate> {
                 const SizedBox(height: 8),
 
                 // Empty State
-                if (steps.isEmpty)
+                if (workStep.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(
@@ -198,9 +216,9 @@ class _CreateIntervalTemplateState extends State<CreateIntervalTemplate> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.green.shade100,
-                          child: Text("${index + 1}"),
+                          child: Text("${workStep.length}"),
                         ),
-                        title: Text(steps[index]),
+                        title: Text(workStep[index].name),
                         trailing: const Icon(Icons.drag_handle),
                       ),
                     );
