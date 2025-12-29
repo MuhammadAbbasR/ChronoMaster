@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:chronomaster_pro/services/hive_services.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +14,8 @@ class TimeIntervalProvider  extends ChangeNotifier{
   int remainingTime=0;
   int totalSteps=0;
   bool isRunning=true;
-  Timer? _timer;
+  Timer? timer;
+  List<WorkoutStep> _workoutStep=[];
   void fetchTemplate()async{
   loading =true;
  // templateList.clear();
@@ -50,17 +51,20 @@ class TimeIntervalProvider  extends ChangeNotifier{
   void initializeWorkOutStep(WorkoutTemplate workoutstep){
     currentStepIndex=0;
     totalSteps=workoutstep.steps.length;
+    _workoutStep=workoutstep.steps;
     isRunning=true;
     remainingTime=workoutstep.steps[currentStepIndex].duration;
-    Start();
+    startTimer();
   }
 
 
   void moveNext(){
 
     if(currentStepIndex>totalSteps){
-
+      currentStepIndex++;
+      remainingTime=_workoutStep[currentStepIndex].duration;
     }
+
 
   }
 
@@ -68,20 +72,24 @@ class TimeIntervalProvider  extends ChangeNotifier{
 
   }
 
-  void Stop(){
+  void stopTimer(){
+
+    isRunning=false;
+    timer!.cancel();
+    notifyListeners();
 
   }
 
-  void Start(){
-    Timer.periodic(Duration(seconds: 1), (timer){
+  void startTimer(){
+
+    Timer.periodic(const Duration(seconds: 1), (timer){
       if(remainingTime>0){
         remainingTime--;
       }{
         moveNext();
       }
-
     });
-  }
 
+  }
 
 }
