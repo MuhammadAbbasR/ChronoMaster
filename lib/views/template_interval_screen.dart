@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
+import 'package:chronomaster_pro/view_model/time_interval_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class IntervalScreen extends StatefulWidget {
   final WorkoutTemplate template;
@@ -23,6 +25,7 @@ class _IntervalScreenState extends State<IntervalScreen> {
   @override
   void initState() {
     super.initState();
+    Provider.of<TimeIntervalProvider>(context,listen: false).initializeWorkOutStep(widget.template);
     remainingSeconds = currentStep.duration;
     startTimer();
   }
@@ -66,67 +69,74 @@ class _IntervalScreenState extends State<IntervalScreen> {
     return Scaffold(
       backgroundColor: isRest ? Colors.blueGrey : Colors.redAccent,
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+        child:
 
-            Text(
-              currentStep.name.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+            Consumer<TimeIntervalProvider>(builder: (context,providerVM,_){
+              return  Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
 
-            const SizedBox(height: 20),
+                  Text(
+                    providerVM.workoutStep[providerVM.currentStepIndex].name,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
 
-            Text(
-              formatTime(remainingSeconds),
-              style: const TextStyle(
-                fontSize: 64,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+                  const SizedBox(height: 20),
 
-            const SizedBox(height: 30),
+                  Text(
+                    formatTime(providerVM.remainingTime),
+                    style: const TextStyle(
+                      fontSize: 64,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
 
-            if (currentStepIndex + 1 < widget.template.steps.length)
-              Text(
-                'Next: ${widget.template.steps[currentStepIndex + 1].name}',
-                style: const TextStyle(color: Colors.white70),
-              ),
+                  const SizedBox(height: 30),
 
-            const SizedBox(height: 40),
+                  if (providerVM.currentStepIndex + 1 < providerVM.totalSteps)
+                    Text(
+                      'Next: ${providerVM.workoutStep[providerVM.currentStepIndex + 1].name}',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  iconSize: 40,
-                  color: Colors.white,
-                  icon: Icon(isRunning ? Icons.pause : Icons.play_arrow),
-                  onPressed: () {
-                    setState(() {
-                      isRunning = !isRunning;
-                    });
-                  },
-                ),
-                const SizedBox(width: 20),
-                IconButton(
-                  iconSize: 40,
-                  color: Colors.white,
-                  icon: const Icon(Icons.stop),
-                  onPressed: () {
-                    _timer?.cancel();
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+                  const SizedBox(height: 40),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        iconSize: 40,
+                        color: Colors.white,
+                        icon: Icon(isRunning ? Icons.pause : Icons.play_arrow),
+                        onPressed: () {
+                          setState(() {
+                            isRunning = !isRunning;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 20),
+                      IconButton(
+                        iconSize: 40,
+                        color: Colors.white,
+                        icon: const Icon(Icons.stop),
+                        onPressed: () {
+                          context.read<TimeIntervalProvider>().stopTimer();
+                          _timer?.cancel();
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }),
+
+
       ),
     );
   }

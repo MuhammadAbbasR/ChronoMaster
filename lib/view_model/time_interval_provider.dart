@@ -14,8 +14,8 @@ class TimeIntervalProvider  extends ChangeNotifier{
   int remainingTime=0;
   int totalSteps=0;
   bool isRunning=true;
-  Timer? timer;
-  List<WorkoutStep> _workoutStep=[];
+  Timer? _timer;
+  List<WorkoutStep> workoutStep=[];
   void fetchTemplate()async{
   loading =true;
  // templateList.clear();
@@ -51,20 +51,21 @@ class TimeIntervalProvider  extends ChangeNotifier{
   void initializeWorkOutStep(WorkoutTemplate workoutstep){
     currentStepIndex=0;
     totalSteps=workoutstep.steps.length;
-    _workoutStep=workoutstep.steps;
+    workoutStep=workoutstep.steps;
     isRunning=true;
     remainingTime=workoutstep.steps[currentStepIndex].duration;
     startTimer();
   }
 
-
   void moveNext(){
 
-    if(currentStepIndex>totalSteps){
+    if(currentStepIndex<totalSteps-1){
       currentStepIndex++;
-      remainingTime=_workoutStep[currentStepIndex].duration;
+      remainingTime=workoutStep[currentStepIndex].duration;
     }
-
+    else {
+      stopTimer();
+    }
 
   }
 
@@ -75,19 +76,26 @@ class TimeIntervalProvider  extends ChangeNotifier{
   void stopTimer(){
 
     isRunning=false;
-    timer!.cancel();
+    _timer!.cancel();
     notifyListeners();
 
   }
 
   void startTimer(){
 
-    Timer.periodic(const Duration(seconds: 1), (timer){
+    _timer=Timer.periodic(const Duration(seconds: 1), (timer){
       if(remainingTime>0){
+
         remainingTime--;
-      }{
-        moveNext();
+        notifyListeners();
+
       }
+     else {
+
+        moveNext();
+
+      }
+
     });
 
   }
