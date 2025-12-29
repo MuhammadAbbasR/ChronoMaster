@@ -15,6 +15,8 @@ class TimeIntervalProvider  extends ChangeNotifier{
   int totalSteps=0;
   bool isRunning=true;
   Timer? _timer;
+  bool isWorkoutFinished = false;
+  bool _isTransitioning = false;
   List<WorkoutStep> workoutStep=[];
   void fetchTemplate()async{
   loading =true;
@@ -52,6 +54,7 @@ class TimeIntervalProvider  extends ChangeNotifier{
     currentStepIndex=0;
     totalSteps=workoutstep.steps.length;
     workoutStep=workoutstep.steps;
+    isWorkoutFinished = false;
     isRunning=true;
     remainingTime=workoutstep.steps[currentStepIndex].duration;
     startTimer();
@@ -64,7 +67,7 @@ class TimeIntervalProvider  extends ChangeNotifier{
       remainingTime=workoutStep[currentStepIndex].duration;
     }
     else {
-      stopTimer();
+      finishWorkout();
     }
 
   }
@@ -77,27 +80,64 @@ class TimeIntervalProvider  extends ChangeNotifier{
 
     isRunning=false;
     _timer!.cancel();
+    resetWorkout();
     notifyListeners();
 
   }
 
-  void startTimer(){
+  void startTimer() {
+    _timer?.cancel();
 
-    _timer=Timer.periodic(const Duration(seconds: 1), (timer){
-      if(remainingTime>0){
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_isTransitioning) return;
 
-        remainingTime--;
-        notifyListeners();
+      remainingTime--;
+      notifyListeners();
 
+      if (remainingTime == 0) {
+        _handleStepEnd();
       }
-     else {
-
-        moveNext();
-
-      }
-
     });
-
   }
+
+
+  void _handleStepEnd() async {
+    _isTransitioning = true;
+
+    _timer?.cancel();
+
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    if (currentStepIndex < totalSteps - 1) {
+      currentStepIndex++;
+      remainingTime = workoutStep[currentStepIndex].duration;
+
+      _isTransitioning = false;
+      startTimer();
+    } else {
+      finishWorkout();
+    }
+
+    notifyListeners();
+  }
+
+
+  void resetWorkout() {
+    _timer?.cancel();
+    isRunning = false;
+    isWorkoutFinished = false;
+    currentStepIndex = 0;
+    remainingTime = 0;
+  }
+
+
+  void finishWorkout() {
+    isRunning = false;
+    _timer?.cancel();
+    isWorkoutFinished = true;
+    notifyListeners();
+  }
+
+
 
 }

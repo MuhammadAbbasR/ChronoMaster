@@ -26,8 +26,8 @@ class _IntervalScreenState extends State<IntervalScreen> {
   void initState() {
     super.initState();
     Provider.of<TimeIntervalProvider>(context,listen: false).initializeWorkOutStep(widget.template);
-    remainingSeconds = currentStep.duration;
-    startTimer();
+   // remainingSeconds = currentStep.duration;
+   // startTimer();
   }
 
   void startTimer() {
@@ -72,6 +72,14 @@ class _IntervalScreenState extends State<IntervalScreen> {
         child:
 
             Consumer<TimeIntervalProvider>(builder: (context,providerVM,_){
+
+              if(providerVM.isWorkoutFinished){
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  providerVM.resetWorkout();
+                  Navigator.pop(context);
+                });
+              }
+
               return  Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -112,11 +120,11 @@ class _IntervalScreenState extends State<IntervalScreen> {
                       IconButton(
                         iconSize: 40,
                         color: Colors.white,
-                        icon: Icon(isRunning ? Icons.pause : Icons.play_arrow),
+                        icon: Icon(providerVM.isRunning ? Icons.pause : Icons.play_arrow),
                         onPressed: () {
-                          setState(() {
-                            isRunning = !isRunning;
-                          });
+
+                         // providerVM.isRunning=!providerVM.isRunning;
+
                         },
                       ),
                       const SizedBox(width: 20),
