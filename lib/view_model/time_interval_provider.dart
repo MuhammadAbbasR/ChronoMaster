@@ -2,142 +2,134 @@ import 'dart:async';
 import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:chronomaster_pro/services/hive_services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 
-class TimeIntervalProvider  extends ChangeNotifier{
+class TimeIntervalProvider extends ChangeNotifier {
 
-  List<WorkoutTemplate> templateList=[];
-  bool loading =false;
-  int currentStepIndex=0;
-  int remainingTime=0;
-  int totalSteps=0;
-  bool isRunning=true;
-  Timer? _timer;
+  List<WorkoutTemplate> templateList = [];
+  bool loading = false;
+
+
+  int currentStepIndex = 0;
+  int remainingTime = 0;
+  int totalSteps = 0;
+
+  bool isRunning = false;
   bool isWorkoutFinished = false;
+
+  Timer? _timer;
   bool _isTransitioning = false;
-  List<WorkoutStep> workoutStep=[];
-  void fetchTemplate()async{
-  loading =true;
- // templateList.clear();
-  notifyListeners();
-    templateList= HiveService.getAllTemplates();
-    loading =false;
+
+  List<WorkoutStep> workoutSteps = [];
+
+
+  Future<void> fetchTemplate() async {
+    loading = true;
     notifyListeners();
 
+    templateList = HiveService.getAllTemplates();
+
+    loading = false;
+    notifyListeners();
   }
 
-  void addTemplate(WorkoutTemplate workoutTemplate)async{
-    HiveService.addTemplates(workoutTemplate);
+  Future<void> addTemplate(WorkoutTemplate template) async {
+    await HiveService.addTemplates(template);
     fetchTemplate();
   }
 
-  void deleteTemplate(WorkoutTemplate workoutTemplate, int index) async {
-    templateList.removeAt(index);
+  Future<void> deleteTemplate(WorkoutTemplate template, int index) async {
+    final removed = templateList.removeAt(index);
     notifyListeners();
 
     try {
-      await HiveService.deleteTemplate(workoutTemplate);
+      await HiveService.deleteTemplate(template);
     } catch (e) {
-
-      templateList.insert(index, workoutTemplate);
+      templateList.insert(index, removed);
       notifyListeners();
-      if (kDebugMode) {
-        print("Failed to delete template: $e");
-      }
+      debugPrint("Delete failed: $e");
     }
-
   }
 
-  void initializeWorkOutStep(WorkoutTemplate workoutstep){
-    currentStepIndex=0;
-    totalSteps=workoutstep.steps.length;
-    workoutStep=workoutstep.steps;
+
+  void initializeWorkout(WorkoutTemplate template) {
+    _timer?.cancel();
+
+    workoutSteps = template.steps;
+    currentStepIndex = 0;
+    remainingTime = workoutSteps.first.duration;
     isWorkoutFinished = false;
-    isRunning=true;
-    remainingTime=workoutstep.steps[currentStepIndex].duration;
-    startTimer();
-  }
+    isRunning = true;
 
-  void moveNext(){
-
-    if(currentStepIndex<totalSteps-1){
-      currentStepIndex++;
-      remainingTime=workoutStep[currentStepIndex].duration;
-    }
-    else {
-      finishWorkout();
-    }
-
-  }
-
-  void moveBack(){
-
-  }
-
-  void stopTimer(){
-
-    isRunning=false;
-    _timer!.cancel();
-    resetWorkout();
+    _startTimer();
     notifyListeners();
-
   }
 
-  void startTimer() {
+
+  void _startTimer() {
     _timer?.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_isTransitioning) return;
+      if (!isRunning) return;
 
-      remainingTime--;
-      notifyListeners();
-
-      if (remainingTime == 0) {
-        _handleStepEnd();
+      if (remainingTime > 0) {
+        remainingTime--;
+        notifyListeners();
+      } else {
+        _moveToNextStep();
       }
     });
   }
 
-
-  void _handleStepEnd() async {
-    _isTransitioning = true;
-
-    _timer?.cancel();
-
-    await Future.delayed(const Duration(milliseconds: 400));
-
-    if (currentStepIndex < totalSteps - 1) {
+  void _moveToNextStep() {
+    if (currentStepIndex < workoutSteps.length - 1) {
       currentStepIndex++;
-      remainingTime = workoutStep[currentStepIndex].duration;
-
-      _isTransitioning = false;
-      startTimer();
+      remainingTime = workoutSteps[currentStepIndex].duration;
+      notifyListeners();
     } else {
       finishWorkout();
     }
+  }
 
+  void pause() {
+    isRunning = false;
     notifyListeners();
   }
 
+  void resume() {
+    if (isWorkoutFinished) return;
+    isRunning = true;
+    notifyListeners();
+  }
 
-  void resetWorkout() {
+  void stop() {
+    _timer?.cancel();
+    reset();
+  }
+
+  void finishWorkout() {
+    _timer?.cancel();
+    isRunning = false;
+    isWorkoutFinished = true;
+    notifyListeners();
+  }
+
+  void reset() {
     _timer?.cancel();
     isRunning = false;
     isWorkoutFinished = false;
     currentStepIndex = 0;
     remainingTime = 0;
-  }
-
-
-  void finishWorkout() {
-    isRunning = false;
-    _timer?.cancel();
-    isWorkoutFinished = true;
+    workoutSteps = [];
     notifyListeners();
   }
 
-
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
 }
+

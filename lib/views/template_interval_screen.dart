@@ -1,12 +1,11 @@
-import 'dart:async';
-import 'package:chronomaster_pro/model/workout_step_model.dart';
-import 'package:chronomaster_pro/model/workout_template_model.dart';
-import 'package:chronomaster_pro/view_model/time_interval_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:chronomaster_pro/model/workout_template_model.dart';
+import 'package:chronomaster_pro/view_model/time_interval_provider.dart';
 
 class IntervalScreen extends StatefulWidget {
   final WorkoutTemplate template;
+
   const IntervalScreen({super.key, required this.template});
 
   @override
@@ -14,145 +13,110 @@ class IntervalScreen extends StatefulWidget {
 }
 
 class _IntervalScreenState extends State<IntervalScreen> {
-  int currentStepIndex = 0;
-  late int remainingSeconds;
-  Timer? _timer;
-  bool isRunning = true;
-
-  WorkoutStep get currentStep =>
-      widget.template.steps[currentStepIndex];
+  bool _popped = false;
 
   @override
   void initState() {
     super.initState();
-    Provider.of<TimeIntervalProvider>(context,listen: false).initializeWorkOutStep(widget.template);
-   // remainingSeconds = currentStep.duration;
-   // startTimer();
-  }
-
-  void startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!isRunning) return;
-
-      if (remainingSeconds > 0) {
-        setState(() {
-          remainingSeconds--;
-        });
-      } else {
-        moveToNextStep();
-      }
+    Future.microtask(() {
+      context.read<TimeIntervalProvider>().initializeWorkout(widget.template);
     });
-  }
-
-  void moveToNextStep() {
-    if (currentStepIndex < widget.template.steps.length - 1) {
-      setState(() {
-        currentStepIndex++;
-        remainingSeconds = currentStep.duration;
-      });
-    } else {
-      _timer?.cancel();
-      Navigator.pop(context);
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isRest = currentStep.name == "Rest";
+    return Consumer<TimeIntervalProvider>(
+      builder: (context, vm, _) {
 
-    return Scaffold(
-      backgroundColor: isRest ? Colors.blueGrey : Colors.redAccent,
-      body: SafeArea(
-        child:
+        if (vm.isWorkoutFinished && !_popped) {
+          _popped = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            vm.reset();
+            Navigator.pop(context);
+          });
+        }
 
-            Consumer<TimeIntervalProvider>(builder: (context,providerVM,_){
+        if (vm.workoutSteps.isEmpty) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-              if(providerVM.isWorkoutFinished){
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  providerVM.resetWorkout();
-                  Navigator.pop(context);
-                });
-              }
+        final step = vm.workoutSteps[vm.currentStepIndex];
+        final isRest = step.name.toLowerCase() == "rest";
 
-              return  Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+        return Scaffold(
+          backgroundColor: isRest ? Colors.blueGrey : Colors.redAccent,
+          body: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  step.name,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
 
+                const SizedBox(height: 20),
+
+                Text(
+                  _formatTime(vm.remainingTime),
+                  style: const TextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                if (vm.currentStepIndex + 1 < vm.workoutSteps.length)
                   Text(
-                    providerVM.workoutStep[providerVM.currentStepIndex].name,
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                    'Next: ${vm.workoutSteps[vm.currentStepIndex + 1].name}',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+
+                const SizedBox(height: 40),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      iconSize: 40,
                       color: Colors.white,
+                      icon: Icon(
+                        vm.isRunning ? Icons.pause : Icons.play_arrow,
+                      ),
+                      onPressed: () {
+                        vm.isRunning ? vm.pause() : vm.resume();
+                      },
                     ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Text(
-                    formatTime(providerVM.remainingTime),
-                    style: const TextStyle(
-                      fontSize: 64,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(width: 20),
+                    IconButton(
+                      iconSize: 40,
                       color: Colors.white,
+                      icon: const Icon(Icons.stop),
+                      onPressed: () {
+                        vm.stop();
+                        Navigator.pop(context);
+                      },
                     ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  if (providerVM.currentStepIndex + 1 < providerVM.totalSteps)
-                    Text(
-                      'Next: ${providerVM.workoutStep[providerVM.currentStepIndex + 1].name}',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-
-                  const SizedBox(height: 40),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        iconSize: 40,
-                        color: Colors.white,
-                        icon: Icon(providerVM.isRunning ? Icons.pause : Icons.play_arrow),
-                        onPressed: () {
-
-                         // providerVM.isRunning=!providerVM.isRunning;
-
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      IconButton(
-                        iconSize: 40,
-                        color: Colors.white,
-                        icon: const Icon(Icons.stop),
-                        onPressed: () {
-                          context.read<TimeIntervalProvider>().stopTimer();
-                          _timer?.cancel();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            }),
-
-
-      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  String formatTime(int seconds) {
+  String _formatTime(int seconds) {
     final min = seconds ~/ 60;
     final sec = seconds % 60;
     return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
-
 }
