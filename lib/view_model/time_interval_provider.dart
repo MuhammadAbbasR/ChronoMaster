@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:chronomaster_pro/config/sound_notification/beep_notification.dart';
 import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:chronomaster_pro/services/hive_services.dart';
@@ -6,30 +7,23 @@ import 'package:flutter/material.dart';
 
 
 class TimeIntervalProvider extends ChangeNotifier {
-
+  BeepNotification p=BeepNotification();
   List<WorkoutTemplate> templateList = [];
   bool loading = false;
-
-
   int currentStepIndex = 0;
   int remainingTime = 0;
   int totalSteps = 0;
-
   bool isRunning = false;
   bool isWorkoutFinished = false;
-
   Timer? _timer;
   bool _isTransitioning = false;
-
   List<WorkoutStep> workoutSteps = [];
 
 
   Future<void> fetchTemplate() async {
     loading = true;
     notifyListeners();
-
     templateList = HiveService.getAllTemplates();
-
     loading = false;
     notifyListeners();
   }
@@ -55,28 +49,34 @@ class TimeIntervalProvider extends ChangeNotifier {
 
   void initializeWorkout(WorkoutTemplate template) {
     _timer?.cancel();
-
+    p.init();
     workoutSteps = template.steps;
     currentStepIndex = 0;
     remainingTime = workoutSteps.first.duration;
     isWorkoutFinished = false;
     isRunning = true;
-
     _startTimer();
     notifyListeners();
   }
 
 
-  void _startTimer() {
+  void _startTimer() async{
     _timer?.cancel();
-
+    p.playStartBeep();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!isRunning) return;
+
+      if(remainingTime==4){
+        debugPrint("4 second remaining");
+        p.playEndBeep();
+     // p.playEndBeep();
+      }
 
       if (remainingTime > 0) {
         remainingTime--;
         notifyListeners();
       } else {
+        p.stopPlayer();
         _moveToNextStep();
       }
     });
@@ -84,6 +84,7 @@ class TimeIntervalProvider extends ChangeNotifier {
 
   void _moveToNextStep() {
     if (currentStepIndex < workoutSteps.length - 1) {
+      p.playStartBeep();
       currentStepIndex++;
       remainingTime = workoutSteps[currentStepIndex].duration;
       notifyListeners();
@@ -109,6 +110,7 @@ class TimeIntervalProvider extends ChangeNotifier {
   }
 
   void finishWorkout() {
+   // p.disposePlayer();
     _timer?.cancel();
     isRunning = false;
     isWorkoutFinished = true;
@@ -117,6 +119,7 @@ class TimeIntervalProvider extends ChangeNotifier {
 
   void reset() {
     _timer?.cancel();
+   // p.disposePlayer();
     isRunning = false;
     isWorkoutFinished = false;
     currentStepIndex = 0;
@@ -127,9 +130,9 @@ class TimeIntervalProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    p.disposePlayer();
     _timer?.cancel();
     super.dispose();
   }
 
 }
-
