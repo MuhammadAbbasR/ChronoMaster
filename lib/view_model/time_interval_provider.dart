@@ -24,6 +24,7 @@ class TimeIntervalProvider extends ChangeNotifier {
     loading = true;
     notifyListeners();
     templateList = HiveService.getAllTemplates();
+    debugPrint(templateList.length.toString());
     loading = false;
     notifyListeners();
   }
@@ -59,14 +60,14 @@ class TimeIntervalProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
   void _startTimer() async{
     _timer?.cancel();
-    p.playStartBeep();
+   // p.playStartBeep();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!isRunning) return;
 
       if(remainingTime==4){
+        p.stopPlayer();
         debugPrint("4 second remaining");
         p.playEndBeep();
      // p.playEndBeep();
@@ -83,7 +84,9 @@ class TimeIntervalProvider extends ChangeNotifier {
   }
 
   void _moveToNextStep() {
+
     if (currentStepIndex < workoutSteps.length - 1) {
+      Future.delayed(const Duration(milliseconds: 300));
       p.playStartBeep();
       currentStepIndex++;
       remainingTime = workoutSteps[currentStepIndex].duration;

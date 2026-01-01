@@ -12,6 +12,8 @@ import 'package:just_audio/just_audio.dart';
    try{
      await _player.setVolume(0.5);
      await _player.setAsset(SoundNotificationConstants.beepStart);
+     _player.play();
+
    }
    catch(e){
      debugPrint(e.toString());
@@ -22,9 +24,11 @@ import 'package:just_audio/just_audio.dart';
   Future<void> playStartBeep() async {
     debugPrint("Start Beep working");
    try{
+     await _player.setAsset(SoundNotificationConstants.beepStart);
       _player.seek(Duration.zero);
       _player.setVolume(0.5);
       _player.play();
+    // _player.stop();
    }
    catch(e){
      debugPrint(e.toString());
@@ -37,8 +41,9 @@ import 'package:just_audio/just_audio.dart';
    try{
      await  _player.setAsset(SoundNotificationConstants.beepEnd);
       _player.seek(Duration.zero);
-      _player.play();
       _player.setVolume(0.5);
+      _player.play();
+   //  _player.stop();
    }
    catch(e){
      debugPrint(e.toString());
@@ -47,7 +52,13 @@ import 'package:just_audio/just_audio.dart';
   }
 
   void stopPlayer(){
-   _player.stop();
+   try{
+     _player.stop();
+   }
+   catch(e){
+     debugPrint(e.toString());
+   }
+
   }
 
   void disposePlayer() {
