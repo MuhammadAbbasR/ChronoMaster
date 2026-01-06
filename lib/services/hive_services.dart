@@ -8,17 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
-  // Box names
+
   static const String sessionBoxName = 'sessions';
   static const String templateBoxName = 'workout_templates';
-
-
   static Box<SessionModel>? _sessionBox;
   static Box<WorkoutTemplate>? _templateBox;
 
   static Future<void> init() async {
     await Hive.initFlutter();
-
 
     if (!Hive.isAdapterRegistered(SessionModelAdapter().typeId)) {
       Hive.registerAdapter(SessionModelAdapter());
@@ -55,23 +52,18 @@ class HiveService {
   }
 
   static Future<void> addSession(SessionModel session) async {
-    final id = session.id.isNotEmpty
-        ? session.id
-        : DateTime.now().millisecondsSinceEpoch.toString();
+    final id = session.id.isNotEmpty ? session.id : DateTime.now().millisecondsSinceEpoch.toString();
     await sessionBox.put(id, session);
   }
-
 
   static List<SessionModel> getAllSessions() {
     return sessionBox.values.toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-
   static SessionModel? getSession(String id) {
     return sessionBox.get(id);
   }
-
 
   static Future<void> updateSession(SessionModel session) async {
     if (session.id.isEmpty) {
@@ -80,11 +72,9 @@ class HiveService {
     await sessionBox.put(session.id, session);
   }
 
-
   static Future<void> deleteSession(String id) async {
     await sessionBox.delete(id);
   }
-
 
   static Future<void> clearAllSessions() async {
     await sessionBox.clear();
@@ -125,6 +115,5 @@ class HiveService {
   static Future<void> updateTemplate(int id, WorkoutTemplate workoutTemplate)async{
     await _templateBox!.putAt(id, workoutTemplate);
   }
-
 
 }

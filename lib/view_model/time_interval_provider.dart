@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:chronomaster_pro/config/sound_notification/beep_notification.dart';
+import 'package:chronomaster_pro/config/sound_notification/vibration_notification.dart';
 import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:chronomaster_pro/services/hive_services.dart';
@@ -77,6 +78,7 @@ class TimeIntervalProvider extends ChangeNotifier {
         remainingTime--;
         notifyListeners();
       } else {
+        VibrationNotification.vibrateMobile();
         p.stopPlayer();
         _moveToNextStep();
       }
