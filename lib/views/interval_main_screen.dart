@@ -1,6 +1,7 @@
 import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:chronomaster_pro/view_model/time_interval_provider.dart';
 import 'package:chronomaster_pro/views/create_interval_template.dart';
+import 'package:chronomaster_pro/views/export_screen.dart';
 import 'package:chronomaster_pro/views/template_interval_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,12 @@ class _IntervalMainScreenState extends State<IntervalMainScreen> {
           "Templates List",
           style: TextStyle(color: Colors.black),
         ),
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=> const ExportScreen()));
+          }, icon: const Icon(Icons.view_agenda_rounded),)
+
+        ],
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 1,

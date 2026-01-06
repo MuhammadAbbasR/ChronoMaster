@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 
 class TimeIntervalProvider extends ChangeNotifier {
+
   BeepNotification p=BeepNotification();
   final VoiceNotification voiceCoach = VoiceNotification();
   List<WorkoutTemplate> templateList = [];
@@ -19,7 +20,6 @@ class TimeIntervalProvider extends ChangeNotifier {
   bool isRunning = false;
   bool isWorkoutFinished = false;
   Timer? _timer;
-  bool _isTransitioning = false;
   List<WorkoutStep> workoutSteps = [];
 
 
