@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:chronomaster_pro/config/sound_notification/beep_notification.dart';
 import 'package:chronomaster_pro/config/sound_notification/vibration_notification.dart';
+import 'package:chronomaster_pro/config/sound_notification/voice_notification.dart';
 import 'package:chronomaster_pro/model/workout_step_model.dart';
 import 'package:chronomaster_pro/model/workout_template_model.dart';
 import 'package:chronomaster_pro/services/hive_services.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 
 class TimeIntervalProvider extends ChangeNotifier {
   BeepNotification p=BeepNotification();
+  final VoiceNotification voiceCoach = VoiceNotification();
   List<WorkoutTemplate> templateList = [];
   bool loading = false;
   int currentStepIndex = 0;
@@ -52,6 +54,7 @@ class TimeIntervalProvider extends ChangeNotifier {
   void initializeWorkout(WorkoutTemplate template) {
     _timer?.cancel();
     p.init();
+    voiceCoach.speak("Workout started");
     workoutSteps = template.steps;
     currentStepIndex = 0;
     remainingTime = workoutSteps.first.duration;
@@ -93,6 +96,7 @@ class TimeIntervalProvider extends ChangeNotifier {
       currentStepIndex++;
       remainingTime = workoutSteps[currentStepIndex].duration;
       notifyListeners();
+      voiceCoach.speak("Next ${workoutSteps[currentStepIndex].name} for ${workoutSteps[currentStepIndex].duration} secpnds");
     } else {
       finishWorkout();
     }
